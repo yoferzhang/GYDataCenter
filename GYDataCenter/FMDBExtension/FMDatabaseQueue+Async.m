@@ -11,6 +11,12 @@
 
 static const void * const kDatabaseQueueSpecificKey = &kDatabaseQueueSpecificKey;
 
+@interface FMDatabaseQueue () {
+    dispatch_queue_t    _queue;
+    FMDatabase          *_db;
+}
+@end
+
 @implementation FMDatabaseQueue (Async)
 
 - (dispatch_queue_t)queue {
@@ -91,15 +97,15 @@ static const void * const kDatabaseQueueSpecificKey = &kDatabaseQueueSpecificKey
 
 - (FMDatabase*)database {
     if (!_db) {
-        _db = FMDBReturnRetained([FMDatabase databaseWithPath:_path]);
+        _db = FMDBReturnRetained([FMDatabase databaseWithPath:self.path]);
         
 #if SQLITE_VERSION_NUMBER >= 3005000
-        BOOL success = [_db openWithFlags:_openFlags];
+        BOOL success = [_db openWithFlags:self.openFlags];
 #else
         BOOL success = [_db open];
 #endif
         if (!success) {
-            NSLog(@"FMDatabaseQueue could not reopen database for path %@", _path);
+            NSLog(@"FMDatabaseQueue could not reopen database for path %@", self.path);
             FMDBRelease(_db);
             _db  = 0x00;
             return 0x00;
